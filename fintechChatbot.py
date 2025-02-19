@@ -61,7 +61,7 @@ def main():
         for msg in st.session_state.chat_history:
             st.write(msg)
 
-    # Quit button
+    
     if st.button("Quit"):
         st.write("Chatbot: Goodbye! Have a great day!")
         st.session_state.chat_history = []  # Clear history
