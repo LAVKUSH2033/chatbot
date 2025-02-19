@@ -2,8 +2,9 @@ import streamlit as st
 import google.generativeai as genai
 
 
+genai.configure(api_key='AIzaSyBoeGZNtUdSH_fCGPoZ7hARvNa_v2N9LBU') 
 
-genai.configure(api_key='AIzaSyBoeGZNtUdSH_fCGPoZ7hARvNa_v2N9LBU')
+
 
 knowledge_base = {
     "loans": "A loan is a sum of money that is borrowed and is expected to be paid back with interest. Loans can be secured or unsecured.",
@@ -21,39 +22,50 @@ knowledge_base = {
     #"you" : "This is FinTech Assistant Here to assist you",
 }
 
-def get_chatbot_response(user_input):
 
-    for key in knowledge_base:
+def get_chatbot_response(user_input, chat_history):
+
+    chat_context = "\n".join(chat_history) + f"\nUser: {user_input}\nChatbot:"
+
+    for key, value in knowledge_base.items():
         if key in user_input.lower():
-            return knowledge_base[key]
-
+            return value
 
     try:
-
         model = genai.GenerativeModel('gemini-pro')
-
-        response = model.generate_content(user_input)
+        response = model.generate_content(chat_context)
         return response.text.strip()
     except Exception as e:
         return f"Sorry, something went wrong: {e}"
 
-
 def main():
-    st.title("FinTech Chatbot")
-    st.write("Welcome to the FinTech Chatbot! How can I assist you today?")
+    st.title("FinTech Chatbot 🤖")
+    st.write("Welcome! Ask me anything about loans, credit scores, and financial services.")
 
-    user_input = st.text_input("You:")
+
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+
+
+    user_input = st.text_input("You:", key="user_input")
 
     if user_input:
-        #  chatbot's response
-        response = get_chatbot_response(user_input)
-        st.write(f"Chatbot: {response}")
 
-    #quit button
+        response = get_chatbot_response(user_input, st.session_state.chat_history)
+
+
+        st.session_state.chat_history.append(f"User: {user_input}")
+        st.session_state.chat_history.append(f"Chatbot: {response}")
+
+
+        for msg in st.session_state.chat_history:
+            st.write(msg)
+
+    # Quit button
     if st.button("Quit"):
         st.write("Chatbot: Goodbye! Have a great day!")
+        st.session_state.chat_history = []  # Clear history
         st.stop()
-
 
 if __name__ == "__main__":
     main()
